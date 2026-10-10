@@ -22,7 +22,7 @@ FAKE = textwrap.dedent('''\
     cfg = open(sys.argv[1]).read()
     socks = []
     for key in ('rtspAddress', 'apiAddress'):
-        port = int(re.search(key + r":\\s*'?:(\\d+)", cfg).group(1))
+        port = int(re.search(key + r":\\s*'?[\\d.]*:(\\d+)", cfg).group(1))
         s = socket.socket()
         try:
             s.bind(('0.0.0.0', port))

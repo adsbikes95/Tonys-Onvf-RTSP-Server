@@ -1,6 +1,11 @@
 services:
   onvif-rtsp-server:
-    build: .
+    build:
+      context: .
+      args:
+        # Set to "true" to include local AI object detection (adds several GB).
+        # Not needed for streaming cameras into UniFi Protect.
+        INSTALL_AI: "false"
     container_name: onvif-rtsp-server
     # Shares the host network stack (required for macvlan Virtual NICs to function)
     network_mode: host
@@ -15,6 +20,16 @@ services:
       # this value). Because this uses host networking, the app binds this port
       # directly on the host — no port mapping is required.
       - WEB_UI_PORT=5552
+      # Update checks follow this fork's releases, not upstream's.
+      - UPDATE_GITHUB_REPO=adsbikes95/Tonys-Onvf-RTSP-Server
+    # Ports used on the host (host networking, no mapping needed):
+    #   5552 web UI, 8554 RTSP (MediaMTX), 9997 MediaMTX API (loopback use),
+    #   8888 HLS, 8889 WebRTC, 8001+ one ONVIF port per virtual camera.
     volumes:
+      # Camera config, settings and RTSPS trust live here and survive rebuilds.
+      # Extra CA certificates for RTSPS cameras go in ./data/tls/ca/*.pem|.crt
       - ./data:/app/data
+    # Reap FFmpeg/MediaMTX child processes and give them time to exit cleanly
+    init: true
+    stop_grace_period: 30s
     restart: unless-stopped

@@ -18,8 +18,10 @@ from urllib.parse import urlparse
 from app.version import CURRENT_VERSION, is_newer_version
 
 # GitHub repository information
-GITHUB_OWNER = "BigTonyTones"
-GITHUB_REPO = "Tonys-Onvf-RTSP-Server"
+# Forks can point update checks at their own releases with UPDATE_GITHUB_REPO=owner/repo,
+# so the UI never offers (or reinstalls) an upstream release that would drop fork changes.
+GITHUB_OWNER, GITHUB_REPO = (os.environ.get("UPDATE_GITHUB_REPO") or
+                             "BigTonyTones/Tonys-Onvf-RTSP-Server").split("/", 1)
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/releases/latest"
 
 # SECURITY (C1): updates may only be fetched from GitHub's own infrastructure over HTTPS.
@@ -80,6 +82,9 @@ class UpdateChecker:
         """
         try:
             response = requests.get(GITHUB_API_URL, timeout=10)
+            if response.status_code == 404:
+                # Repo has no published releases yet (e.g. a fork): nothing to offer.
+                return None
             response.raise_for_status()
             
             release_data = response.json()

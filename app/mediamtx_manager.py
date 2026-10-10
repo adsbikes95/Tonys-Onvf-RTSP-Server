@@ -272,7 +272,10 @@ class MediaMTXManager:
             
             # ===== API SETTINGS =====
             'api': True,
-            'apiAddress': f':{MEDIAMTX_API_PORT}',
+            # Loopback only: the API exposes camera source URLs (with credentials) and can
+            # rewrite paths, so it must never be reachable from the LAN. The app itself only
+            # talks to it over 127.0.0.1.
+            'apiAddress': f'127.0.0.1:{MEDIAMTX_API_PORT}',
             
             # ===== AUTHENTICATION =====
             'authMethod': 'http',

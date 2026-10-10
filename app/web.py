@@ -2475,6 +2475,12 @@ def create_web_app(manager):
             if manager.debug_mode:
                  print(f"  [RTSP Auth Check] IP: {client_ip}, Path: {data.get('path')}, User: {user}")
 
+            # 0. MediaMTX control endpoints (API, metrics, pprof) are loopback-only, whatever
+            # the whitelist or RTSP auth settings say: they expose camera credentials.
+            if data.get('action') in ('api', 'metrics', 'pprof') and \
+                    client_ip not in ['127.0.0.1', '::1']:
+                return jsonify({'error': 'Forbidden'}), 403
+
             # 1. ALWAYS allow whitelisted IPs
             if manager.is_ip_whitelisted(client_ip):
                 if manager.debug_mode:

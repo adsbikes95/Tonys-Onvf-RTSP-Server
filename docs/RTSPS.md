@@ -151,6 +151,23 @@ docker compose logs -f --tail=200                  # 5. watch startup
 The container still needs only `NET_ADMIN` and host networking. Privileged mode
 is not required.
 
+Before adopting cameras in Protect:
+
+* **Use Static IP mode for each virtual camera** (an address outside the UDM's
+  DHCP pool, or reserve it there). If isolated DHCP fails the app no longer falls
+  back to a plain `dhclient`, which could change the Unraid host's own route and DNS.
+* **Turn on RTSP authentication** in Settings so the LAN can't watch streams
+  without credentials. Protect gets them over ONVIF.
+* **Run compose from the appdata checkout**, not from a Compose Manager project
+  stored on the flash drive, so `./data` lands in appdata.
+* The image leaves out the local AI detection libraries by default
+  (`INSTALL_AI: "false"` in `docker-compose.yml`). Set it to `"true"` and rebuild
+  if you want them; it adds several GB.
+* The MediaMTX API (9997) listens on 127.0.0.1 only.
+* If Unraid logs macvlan call traces, set Settings > Docker > Docker custom
+  network type to `ipvlan`, or disable bridging and use `eth0` as the parent.
+  After adoption, check the UDM client list shows four separate MACs and IPs.
+
 ### Rollback
 
 ```bash

@@ -143,20 +143,8 @@ class LinuxNetworkManager:
                 except:
                     pass
 
-                # Ultimate Fallback: Try plain dhclient (exactly like user's manual command)
-                # Keep this as a last resort as it might touch host routes
-                result = subprocess.run(['ip', '-4', 'addr', 'show', name], capture_output=True, text=True)
-                if not re.search(r'inet \d+', result.stdout):
-                    try:
-                        print(f"  Standard DHCP attempts failed. Trying plain 'dhclient' (User Success Mode)...")
-                        subprocess.run(['sudo', 'dhclient', '-nw', name], check=False)
-                        # Wait a bit
-                        for _ in range(3):
-                            result = subprocess.run(['ip', '-4', 'addr', 'show', name], capture_output=True, text=True)
-                            if re.search(r'inet \d+', result.stdout): break
-                            time.sleep(1)
-                    except:
-                        pass
+                # No plain 'dhclient' fallback: with host networking it can install a default
+                # route and DNS on the host itself. Use Static IP mode if isolated DHCP fails.
                 
                 # Check final result
                 result = subprocess.run(['ip', '-4', 'addr', 'show', name], capture_output=True, text=True)

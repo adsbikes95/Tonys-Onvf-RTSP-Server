@@ -82,6 +82,9 @@ class UpdateChecker:
         """
         try:
             response = requests.get(GITHUB_API_URL, timeout=10)
+            if response.status_code == 404:
+                # Repo has no published releases yet (e.g. a fork): nothing to offer.
+                return None
             response.raise_for_status()
             
             release_data = response.json()
